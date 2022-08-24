@@ -9,8 +9,15 @@
  * Text Domain: student
  * Domain Path: /languages
 
- * @package category
+ * @package student
  */
 
 namespace Devang\Student;
 
+// define plugin path.
+define( 'MY_PLUGIN_PAT', plugin_dir_path( __FILE__ ) );
+
+// include shortcode.php file.
+require_once MY_PLUGIN_PAT . 'shortcode.php';
+
+add_role( 'student', 'Student' );
