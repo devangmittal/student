@@ -117,9 +117,10 @@ function complete_registration() {
 			'role'       => 'student',
 		);
 		if ( wp_verify_nonce( filter_input( INPUT_POST, '_wpnonce_register-student' ), 'register' ) ) {
-			wp_insert_user( $userdata );
+			$user_id = wp_insert_user( $userdata );
+			update_user_meta( $user_id, 'user_status', 'pending' );
 			echo '<div>';
-			esc_html_e( 'Registration complete.', 'student' );
+			esc_html_e( 'Registration complete. Waiting for Approval.', 'student' );
 			echo '</div>';
 		} else {
 			echo '<div>';
