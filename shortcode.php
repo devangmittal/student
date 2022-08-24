@@ -36,12 +36,12 @@ function registration_form() {
     </div>
      
     <div>
-    <label for="firstname">First Name</label>
+    <label for="firstname">First Name <strong>*</strong></label>
     <input type="text" name="fname" value="' . filter_input( INPUT_POST, 'fname' ) . '">
     </div>
      
     <div>
-    <label for="website">Last Name</label>
+    <label for="website">Last Name <strong>*</strong></label>
     <input type="text" name="lname" value="' . filter_input( INPUT_POST, 'lname' ) . '">
     </div>
      
@@ -52,41 +52,34 @@ function registration_form() {
 /**
  * Validates the data.
  *
- * @param string $username Username to be validated.
- * @param string $password Password  to be validated.
- * @param string $email Email id  to be validated.
- * @param string $url Blog url  to be validated.
- * @param string $first_name First name  to be validated.
- * @param string $last_name Last name  to be validated.
- * @return void
+ * @return WP_Error $reg_errors
  */
-function registration_validation( $username, $password, $email, $url, $first_name, $last_name ) {
-	global $reg_errors;
+function registration_validation() {
 	$reg_errors = new \WP_Error();
-	if ( empty( $username ) || empty( $password ) || empty( $email ) ) {
+	if ( empty( filter_input( INPUT_POST, 'username' ) ) || empty( filter_input( INPUT_POST, 'password' ) ) || empty( filter_input( INPUT_POST, 'email', FILTER_VALIDATE_EMAIL ) ) || empty( filter_input( INPUT_POST, 'fname' ) ) || empty( filter_input( INPUT_POST, 'lname' ) ) ) {
 		$reg_errors->add( 'field', __( 'Required form field is missing', 'sturent' ) );
-	} elseif ( 4 > strlen( $username ) ) {
+	} elseif ( 4 > strlen( filter_input( INPUT_POST, 'username' ) ) ) {
 		$reg_errors->add( 'username_length', __( 'Username too short. At least 4 characters is required', 'sturent' ) );
-	} elseif ( username_exists( $username ) ) {
+	} elseif ( username_exists( filter_input( INPUT_POST, 'username' ) ) ) {
 		$reg_errors->add( 'user_name', __( 'Sorry, that username already exists!', 'sturent' ) );
-	} elseif ( ! validate_username( $username ) ) {
+	} elseif ( ! validate_username( filter_input( INPUT_POST, 'username' ) ) ) {
 		$reg_errors->add( 'username_invalid', __( 'Sorry, the username you entered is not valid', 'sturent' ) );
-	} elseif ( 5 > strlen( $password ) ) {
+	} elseif ( 5 > strlen( filter_input( INPUT_POST, 'password' ) ) ) {
 		$reg_errors->add( 'password', __( 'Password length must be greater than 5', 'sturent' ) );
-	} elseif ( ! is_email( $email ) ) {
+	} elseif ( ! is_email( filter_input( INPUT_POST, 'email', FILTER_VALIDATE_EMAIL ) ) ) {
 		$reg_errors->add( 'email_invalid', __( 'Email is not valid', 'sturent' ) );
-	} elseif ( email_exists( $email ) ) {
+	} elseif ( email_exists( filter_input( INPUT_POST, 'email', FILTER_VALIDATE_EMAIL ) ) ) {
 		$reg_errors->add( 'email', __( 'Email Already in use', 'sturent' ) );
 	}
-	if ( ! empty( $url ) ) {
-		if ( wp_http_validate_url( $url ) ) {
+	if ( ! empty( filter_input( INPUT_POST, 'url', FILTER_VALIDATE_URL ) ) ) {
+		if ( wp_http_validate_url( filter_input( INPUT_POST, 'url', FILTER_VALIDATE_URL ) ) ) {
 			return;
 		} else {
 			$reg_errors->add( 'url', 'It is not a valid URL' );
 		}
-	} elseif ( ! validate_username( $first_name ) ) {
+	} elseif ( ! validate_username( filter_input( INPUT_POST, 'fname' ) ) ) {
 		$reg_errors->add( 'username_invalid', __( 'Sorry, Invalid First Name', 'sturent' ) );
-	} elseif ( ! validate_username( $last_name ) ) {
+	} elseif ( ! validate_username( filter_input( INPUT_POST, 'lname' ) ) ) {
 		$reg_errors->add( 'username_invalid', __( 'Sorry, Invalid Last Name', 'sturent' ) );
 	}
 	if ( is_wp_error( $reg_errors ) ) {
@@ -98,6 +91,7 @@ function registration_validation( $username, $password, $email, $url, $first_nam
 			echo '</div>';
 		}
 	}
+	return $reg_errors;
 }
 /**
  * Adds user.
@@ -105,20 +99,26 @@ function registration_validation( $username, $password, $email, $url, $first_nam
  * @return void
  */
 function complete_registration() {
-	global $reg_errors, $username, $password, $email, $url, $first_name, $last_name;
+	$reg_errors = registration_validation();
+
 	if ( 1 > count( $reg_errors->get_error_messages() ) ) {
 		$userdata = array(
-			'user_login' => $username,
-			'user_email' => $email,
-			'user_pass'  => $password,
-			'user_url'   => $url,
-			'first_name' => $first_name,
-			'last_name'  => $last_name,
+			// sanitize user form input.
+			'user_login' => sanitize_user( filter_input( INPUT_POST, 'username' ) ),
+			'user_email' => sanitize_email( filter_input( INPUT_POST, 'email' ) ),
+			'user_pass'  => esc_attr( filter_input( INPUT_POST, 'password' ) ),
+			'user_url'   => esc_url( filter_input( INPUT_POST, 'url' ) ),
+			'first_name' => sanitize_text_field( filter_input( INPUT_POST, 'fname' ) ),
+			'last_name'  => sanitize_text_field( filter_input( INPUT_POST, 'lname' ) ),
 			'role'       => 'student',
 		);
 		if ( wp_verify_nonce( filter_input( INPUT_POST, '_wpnonce_register-student' ), 'register' ) ) {
 			$user_id = wp_insert_user( $userdata );
-			update_user_meta( $user_id, 'user_status', 'pending' );
+			if ( ! is_wp_error( $user_id ) ) {
+				update_user_meta( $user_id, 'user_status', 'pending' );
+			} else {
+				return;
+			}
 			echo '<div>';
 			esc_html_e( 'Registration complete. Waiting for Approval.', 'student' );
 			echo '</div>';
@@ -136,35 +136,10 @@ function complete_registration() {
  */
 function student_shortcode_callable() {
 	if ( filter_input( INPUT_POST, 'submit' ) ) {
-		registration_validation(
-			filter_input( INPUT_POST, 'username' ),
-			filter_input( INPUT_POST, 'password' ),
-			filter_input( INPUT_POST, 'email' ),
-			filter_input( INPUT_POST, 'url' ),
-			filter_input( INPUT_POST, 'fname' ),
-			filter_input( INPUT_POST, 'lname' )
-		);
-		// sanitize user form input.
-		global $username, $password, $email, $url, $first_name, $last_name;
-		$username   = sanitize_user( filter_input( INPUT_POST, 'username' ) );
-		$password   = esc_attr( filter_input( INPUT_POST, 'password' ) );
-		$email      = sanitize_email( filter_input( INPUT_POST, 'email' ) );
-		$url        = esc_url( filter_input( INPUT_POST, 'url' ) );
-		$first_name = sanitize_text_field( filter_input( INPUT_POST, 'fname' ) );
-		$last_name  = sanitize_text_field( filter_input( INPUT_POST, 'lname' ) );
-
 		// call @function complete_registration to create the user.
 		// only when no WP_error is found.
-		complete_registration(
-			$username,
-			$password,
-			$email,
-			$url,
-			$first_name,
-			$last_name
-		);
+		complete_registration();
 	}
-
 	registration_form();
 }
 add_shortcode( 'student_register_form', __NAMESPACE__ . '\student_shortcode_callable' );
