@@ -45,7 +45,7 @@ function registration_form() {
     <input type="text" name="lname" value="' . filter_input( INPUT_POST, 'lname' ) . '">
     </div>
      
-    <input type="submit" name="submit" value="Register Student"/>' . wp_nonce_field( -1, '_wpnonce_register-student' ) . '
+    <input type="submit" name="submit" value="Register Student"/>' . wp_nonce_field( 'register', '_wpnonce_register-student' ) . '
     </form>
     ';
 }
@@ -116,8 +116,16 @@ function complete_registration() {
 			'last_name'  => $last_name,
 			'role'       => 'student',
 		);
-		$user     = wp_insert_user( $userdata );
-		echo 'Registration complete.';
+		if ( wp_verify_nonce( filter_input( INPUT_POST, '_wpnonce_register-student' ), 'register' ) ) {
+			wp_insert_user( $userdata );
+			echo '<div>';
+			esc_html_e( 'Registration complete.', 'student' );
+			echo '</div>';
+		} else {
+			echo '<div>';
+			esc_html_e( 'You do not have permission to create a user.', 'student' );
+			echo '</div>';
+		}
 	}
 }
 /**
