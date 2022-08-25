@@ -57,19 +57,19 @@ function registration_form() {
 function registration_validation() {
 	$reg_errors = new \WP_Error();
 	if ( empty( filter_input( INPUT_POST, 'username' ) ) || empty( filter_input( INPUT_POST, 'password' ) ) || empty( filter_input( INPUT_POST, 'email', FILTER_VALIDATE_EMAIL ) ) || empty( filter_input( INPUT_POST, 'fname' ) ) || empty( filter_input( INPUT_POST, 'lname' ) ) ) {
-		$reg_errors->add( 'field', __( 'Required form field is missing', 'sturent' ) );
+		$reg_errors->add( 'field', __( 'Required form field is missing', 'student' ) );
 	} elseif ( 4 > strlen( filter_input( INPUT_POST, 'username' ) ) ) {
-		$reg_errors->add( 'username_length', __( 'Username too short. At least 4 characters is required', 'sturent' ) );
+		$reg_errors->add( 'username_length', __( 'Username too short. At least 4 characters is required', 'student' ) );
 	} elseif ( username_exists( filter_input( INPUT_POST, 'username' ) ) ) {
-		$reg_errors->add( 'user_name', __( 'Sorry, that username already exists!', 'sturent' ) );
+		$reg_errors->add( 'user_name', __( 'Sorry, that username already exists!', 'student' ) );
 	} elseif ( ! validate_username( filter_input( INPUT_POST, 'username' ) ) ) {
-		$reg_errors->add( 'username_invalid', __( 'Sorry, the username you entered is not valid', 'sturent' ) );
+		$reg_errors->add( 'username_invalid', __( 'Sorry, the username you entered is not valid', 'student' ) );
 	} elseif ( 5 > strlen( filter_input( INPUT_POST, 'password' ) ) ) {
-		$reg_errors->add( 'password', __( 'Password length must be greater than 5', 'sturent' ) );
+		$reg_errors->add( 'password', __( 'Password length must be greater than 5', 'student' ) );
 	} elseif ( ! is_email( filter_input( INPUT_POST, 'email', FILTER_VALIDATE_EMAIL ) ) ) {
-		$reg_errors->add( 'email_invalid', __( 'Email is not valid', 'sturent' ) );
+		$reg_errors->add( 'email_invalid', __( 'Email is not valid', 'student' ) );
 	} elseif ( email_exists( filter_input( INPUT_POST, 'email', FILTER_VALIDATE_EMAIL ) ) ) {
-		$reg_errors->add( 'email', __( 'Email Already in use', 'sturent' ) );
+		$reg_errors->add( 'email', __( 'Email Already in use', 'student' ) );
 	}
 	if ( ! empty( filter_input( INPUT_POST, 'url', FILTER_VALIDATE_URL ) ) ) {
 		if ( wp_http_validate_url( filter_input( INPUT_POST, 'url', FILTER_VALIDATE_URL ) ) ) {
@@ -78,9 +78,9 @@ function registration_validation() {
 			$reg_errors->add( 'url', 'It is not a valid URL' );
 		}
 	} elseif ( ! validate_username( filter_input( INPUT_POST, 'fname' ) ) ) {
-		$reg_errors->add( 'username_invalid', __( 'Sorry, Invalid First Name', 'sturent' ) );
+		$reg_errors->add( 'username_invalid', __( 'Sorry, Invalid First Name', 'student' ) );
 	} elseif ( ! validate_username( filter_input( INPUT_POST, 'lname' ) ) ) {
-		$reg_errors->add( 'username_invalid', __( 'Sorry, Invalid Last Name', 'sturent' ) );
+		$reg_errors->add( 'username_invalid', __( 'Sorry, Invalid Last Name', 'student' ) );
 	}
 	if ( is_wp_error( $reg_errors ) ) {
 
