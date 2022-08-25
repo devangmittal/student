@@ -20,6 +20,7 @@ define( 'MY_PLUGIN_PAT', plugin_dir_path( __FILE__ ) );
 // include shortcode.php file.
 require_once MY_PLUGIN_PAT . 'shortcode.php';
 require_once MY_PLUGIN_PAT . 'admin-setting.php';
+require_once MY_PLUGIN_PAT . 'login-page.php';
 
 add_role( 'student', 'Student' );
 
