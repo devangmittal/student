@@ -1,4 +1,9 @@
 <?php
+/**
+ * Add menu settings in admin panel.
+ *
+ * @package student
+ */
 
 namespace Devang\Admin_Setting;
 
@@ -27,13 +32,15 @@ function student_setting_menu() {
 function student_setting_callback_function() {
 	$userids = filter_input( INPUT_POST, 'student_status', FILTER_VALIDATE_INT, FILTER_REQUIRE_ARRAY );
 
-	if ( null !== $userids && array_key_exists( 'approve', $_POST ) ) {
-		foreach ( $userids as $userid ) {
-			update_user_meta( $userid, 'user_status', 'approve' );
-		}
-	} elseif ( null !== $userids && array_key_exists( 'deny', $_POST ) ) {
-		foreach ( $userids as $userid ) {
-			update_user_meta( $userid, 'user_status', 'pending' );
+	if ( wp_verify_nonce( filter_input( INPUT_POST, '_wpnonce_update-student-status' ), 'update' ) && null !== $userids ) {
+		if ( array_key_exists( 'approve', $_POST ) ) {
+			foreach ( $userids as $userid ) {
+				update_user_meta( $userid, 'user_status', 'approve' );
+			}
+		} elseif ( array_key_exists( 'deny', $_POST ) ) {
+			foreach ( $userids as $userid ) {
+				update_user_meta( $userid, 'user_status', 'pending' );
+			}
 		}
 	}
 	$users = get_users(
@@ -54,7 +61,7 @@ function student_setting_callback_function() {
 	}
 	echo '
 		<button type="submit" name="approve">Approve</button>
-		<button type="submit" name="deny">deny</button>
+		<button type="submit" name="deny">deny</button>' . wp_nonce_field( 'update', '_wpnonce_update-student-status' ) . '
 		</div>
 		</form>
 		</div>';
