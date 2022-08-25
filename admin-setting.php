@@ -25,8 +25,27 @@ function student_setting_menu() {
  * @return void
  */
 function student_setting_callback_function() {
-	$users = get_users( array( 'role' => 'student' ) );
-	echo '<div><form action="' . filter_input( INPUT_SERVER, 'REQUEST_URI' ) . '" method="post">
+	$userids = filter_input( INPUT_POST, 'student_status', FILTER_VALIDATE_INT, FILTER_REQUIRE_ARRAY );
+
+	if ( null !== $userids && array_key_exists( 'approve', $_POST ) ) {
+		foreach ( $userids as $userid ) {
+			update_user_meta( $userid, 'user_status', 'approve' );
+		}
+	} elseif ( null !== $userids && array_key_exists( 'deny', $_POST ) ) {
+		foreach ( $userids as $userid ) {
+			update_user_meta( $userid, 'user_status', 'pending' );
+		}
+	}
+	$users = get_users(
+		array(
+			'role'       => 'student',
+			'meta_key'   => 'user_status',
+			'meta_value' => 'pending',
+		)
+	);
+	echo '
+	<div>
+	<form action="' . filter_input( INPUT_SERVER, 'REQUEST_URI' ) . '" method="post">
 	<div>
 	<label>Pending Students: </label> <br>';
 	foreach ( $users as $user ) {
@@ -34,17 +53,9 @@ function student_setting_callback_function() {
 		<input type="checkbox" name="student_status[]" value="' . esc_html( $user->ID ) . '"> ' . esc_html( get_user_meta( $user->ID, 'nickname', true ) ) . '<br>';
 	}
 	echo '
-		<button type="submit">Approve</button>
-		<button type="submit">deny</button>
+		<button type="submit" name="approve">Approve</button>
+		<button type="submit" name="deny">deny</button>
 		</div>
-		</form>';
-	$approve = filter_input( INPUT_POST, 'deny' );
-	echo '<div>';
-
-	if ( filter_input( INPUT_POST, 'deny' )){
-		update_user_meta( $user_id, 'user_status', 'pending' );
-	} elseif ( filter_input( INPUT_POST, 'deny' ) ){
-		update_user_meta( $user_id, 'user_status', 'pending' );
-
-	}
+		</form>
+		</div>';
 }
