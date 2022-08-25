@@ -32,6 +32,15 @@ function student_setting_menu() {
 		'pending_students',
 		__NAMESPACE__ . '\pending_students_menu_callback_function',
 	);
+	// Sub menu Pending Students of Students custom menu.
+	add_submenu_page(
+		'all_students',
+		'Approved Students',
+		'Approved Students',
+		'manage_options',
+		'approved_students',
+		__NAMESPACE__ . '\approved_students_menu_callback_function',
+	);
 }
 /**
  * Create Student menu callback function.
@@ -132,6 +141,59 @@ function pending_students_menu_callback_function() {
 					?>
 					<button type="submit" name="approve">Approve</button>
 					<button type="submit" name="deny">deny</button><?php wp_nonce_field( 'update', '_wpnonce_update-pending-student-status' ); ?>
+				</div>
+			</form>
+		</div>
+		<?php
+	}
+}
+/**
+ * Create Approved Students sub menu of Students admin menu.
+ *
+ * @return void
+ */
+function approved_students_menu_callback_function() {
+	$userids = filter_input( INPUT_POST, 'student_status', FILTER_VALIDATE_INT, FILTER_REQUIRE_ARRAY );
+
+	if ( wp_verify_nonce( filter_input( INPUT_POST, '_wpnonce_update-approved-student-status' ), 'update' ) && null !== $userids ) {
+		if ( array_key_exists( 'pending', $_POST ) ) {
+			foreach ( $userids as $userid ) {
+				update_user_meta( $userid, 'user_status', 'pending' );
+			}
+		} elseif ( array_key_exists( 'deny', $_POST ) ) {
+			foreach ( $userids as $userid ) {
+				update_user_meta( $userid, 'user_status', 'denied' );
+			}
+		}
+	}
+	$users = get_users(
+		array(
+			'role'       => 'student',
+			'meta_key'   => 'user_status',
+			'meta_value' => 'approve',
+		)
+	);
+	if ( empty( $users ) ) {
+		?>
+		<div>
+			<p>
+				No Approved students.
+			</p>
+		</div>
+		<?php
+	} else {
+		?>
+		<div>
+			<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
+				<div>
+					<label>Pending Students: </label> <br> 
+					<?php foreach ( $users as $user ) { ?>
+						<input type="checkbox" name="student_status[]" value="<?php echo esc_html( $user->ID ); ?>"><?php echo esc_html( get_user_meta( $user->ID, 'nickname', true ) ); ?><br>
+						<?php
+					}
+					?>
+					<button type="submit" name="pending">Pending</button>
+					<button type="submit" name="deny">deny</button><?php wp_nonce_field( 'update', '_wpnonce_update-approved-student-status' ); ?>
 				</div>
 			</form>
 		</div>
