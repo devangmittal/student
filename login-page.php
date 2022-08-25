@@ -90,6 +90,7 @@ function update_user() {
 	$errors = validate_updation();
 	if ( 1 > count( $errors->get_error_messages() ) ) {
 		$updated_user_data = array(
+			'ID'         => get_current_user_id(),
 			'user_url'   => esc_url( filter_input( INPUT_POST, 'url' ) ),
 			'first_name' => sanitize_text_field( filter_input( INPUT_POST, 'fname' ) ),
 			'last_name'  => sanitize_text_field( filter_input( INPUT_POST, 'lname' ) ),
