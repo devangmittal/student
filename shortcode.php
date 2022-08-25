@@ -41,7 +41,7 @@ function registration_form() {
     </div>
      
     <div>
-    <label for="website">Last Name <strong>*</strong></label>
+    <label for="lastname">Last Name <strong>*</strong></label>
     <input type="text" name="lname" value="' . filter_input( INPUT_POST, 'lname' ) . '">
     </div>
      
