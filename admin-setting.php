@@ -62,24 +62,28 @@ function student_menu_callback_function() {
 	if ( wp_verify_nonce( filter_input( INPUT_POST, '_wpnonce_update-student-status' ), 'update' ) && null !== $userids ) {
 		if ( array_key_exists( 'approve', $_POST ) ) {
 			foreach ( $userids as $userid ) {
-				update_user_meta( $userid, 'user_status', 'approve' );
+				update_user_meta( $userid, 'user_status', 'approved' );
+			}
+		} elseif ( array_key_exists( 'pending', $_POST ) ) {
+			foreach ( $userids as $userid ) {
+				update_user_meta( $userid, 'user_status', 'pending' );
 			}
 		} elseif ( array_key_exists( 'deny', $_POST ) ) {
 			foreach ( $userids as $userid ) {
-				update_user_meta( $userid, 'user_status', 'pending' );
+				update_user_meta( $userid, 'user_status', 'denied' );
 			}
 		}
 	}
 	$users = get_users(
 		array(
-			'role'       => 'student',
+			'role' => 'student',
 		)
 	);
 	if ( empty( $users ) ) {
 		?>
 		<div>
 			<p>
-				No Pending students.
+				There isn't any registered students.
 			</p>
 		</div>
 		<?php
@@ -88,14 +92,16 @@ function student_menu_callback_function() {
 		<div>
 			<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
 				<div>
-					<label>Pending Students: </label> <br> 
+					<label>Registerd Students: </label> <br> 
 					<?php foreach ( $users as $user ) { ?>
 						<input type="checkbox" name="student_status[]" value="<?php echo esc_html( $user->ID ); ?>"><?php echo esc_html( get_user_meta( $user->ID, 'nickname', true ) ); ?><br>
 						<?php
 					}
 					?>
 					<button type="submit" name="approve">Approve</button>
-					<button type="submit" name="deny">deny</button><?php wp_nonce_field( 'update', '_wpnonce_update-student-status' ); ?>
+					<button type="submit" name="pending">Pending</button>
+					<button type="submit" name="deny">Deny</button>
+					<?php wp_nonce_field( 'update', '_wpnonce_update-student-status' ); ?>
 				</div>
 			</form>
 		</div>
@@ -114,11 +120,11 @@ function pending_students_menu_callback_function() {
 	if ( wp_verify_nonce( filter_input( INPUT_POST, '_wpnonce_update-pending-student-status' ), 'update' ) && null !== $userids ) {
 		if ( array_key_exists( 'approve', $_POST ) ) {
 			foreach ( $userids as $userid ) {
-				update_user_meta( $userid, 'user_status', 'approve' );
+				update_user_meta( $userid, 'user_status', 'approved' );
 			}
 		} elseif ( array_key_exists( 'deny', $_POST ) ) {
 			foreach ( $userids as $userid ) {
-				update_user_meta( $userid, 'user_status', 'pending' );
+				update_user_meta( $userid, 'user_status', 'denied' );
 			}
 		}
 	}
@@ -133,7 +139,7 @@ function pending_students_menu_callback_function() {
 		?>
 		<div>
 			<p>
-				No Pending students.
+				There isn't any Pending students.
 			</p>
 		</div>
 		<?php
@@ -149,7 +155,7 @@ function pending_students_menu_callback_function() {
 					}
 					?>
 					<button type="submit" name="approve">Approve</button>
-					<button type="submit" name="deny">deny</button><?php wp_nonce_field( 'update', '_wpnonce_update-pending-student-status' ); ?>
+					<button type="submit" name="deny">Deny</button><?php wp_nonce_field( 'update', '_wpnonce_update-pending-student-status' ); ?>
 				</div>
 			</form>
 		</div>
@@ -179,14 +185,14 @@ function approved_students_menu_callback_function() {
 		array(
 			'role'       => 'student',
 			'meta_key'   => 'user_status',
-			'meta_value' => 'approve',
+			'meta_value' => 'approved',
 		)
 	);
 	if ( empty( $users ) ) {
 		?>
 		<div>
 			<p>
-				No Approved students.
+				There isn't any Approved students.
 			</p>
 		</div>
 		<?php
@@ -195,14 +201,14 @@ function approved_students_menu_callback_function() {
 		<div>
 			<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
 				<div>
-					<label>Pending Students: </label> <br> 
+					<label>Approved Students: </label> <br> 
 					<?php foreach ( $users as $user ) { ?>
 						<input type="checkbox" name="student_status[]" value="<?php echo esc_html( $user->ID ); ?>"><?php echo esc_html( get_user_meta( $user->ID, 'nickname', true ) ); ?><br>
 						<?php
 					}
 					?>
 					<button type="submit" name="pending">Pending</button>
-					<button type="submit" name="deny">deny</button><?php wp_nonce_field( 'update', '_wpnonce_update-approved-student-status' ); ?>
+					<button type="submit" name="deny">Deny</button><?php wp_nonce_field( 'update', '_wpnonce_update-approved-student-status' ); ?>
 				</div>
 			</form>
 		</div>
@@ -224,7 +230,7 @@ function denied_students_menu_callback_function() {
 			}
 		} elseif ( array_key_exists( 'approve', $_POST ) ) {
 			foreach ( $userids as $userid ) {
-				update_user_meta( $userid, 'user_status', 'approve' );
+				update_user_meta( $userid, 'user_status', 'approved' );
 			}
 		}
 	}
@@ -239,7 +245,7 @@ function denied_students_menu_callback_function() {
 		?>
 		<div>
 			<p>
-				No Denied students.
+				There isn't any Denied students.
 			</p>
 		</div>
 		<?php
@@ -248,7 +254,7 @@ function denied_students_menu_callback_function() {
 		<div>
 			<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
 				<div>
-					<label>Pending Students: </label> <br> 
+					<label>Denied Students: </label> <br> 
 					<?php foreach ( $users as $user ) { ?>
 						<input type="checkbox" name="student_status[]" value="<?php echo esc_html( $user->ID ); ?>"><?php echo esc_html( get_user_meta( $user->ID, 'nickname', true ) ); ?><br>
 						<?php
