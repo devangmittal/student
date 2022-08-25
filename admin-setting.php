@@ -16,20 +16,20 @@ add_action( 'admin_menu', __NAMESPACE__ . '\student_setting_menu' );
 function student_setting_menu() {
 
 	add_menu_page(
-		'Registered Student',
-		'Approval',
+		'Students',
+		'Students',
 		'manage_options',
 		'student_status',
-		__NAMESPACE__ . '\student_setting_callback_function',
+		__NAMESPACE__ . '\student_menu_callback_function',
 		'dashicons-media-spreadsheet'
 	);
 }
 /**
- * Admin setting callback function.
+ * Student menu callback function.
  *
  * @return void
  */
-function student_setting_callback_function() {
+function student_menu_callback_function() {
 	$userids = filter_input( INPUT_POST, 'student_status', FILTER_VALIDATE_INT, FILTER_REQUIRE_ARRAY );
 
 	if ( wp_verify_nonce( filter_input( INPUT_POST, '_wpnonce_update-student-status' ), 'update' ) && null !== $userids ) {
@@ -50,19 +50,30 @@ function student_setting_callback_function() {
 			'meta_value' => 'pending',
 		)
 	);
-	echo '
-	<div>
-	<form action="' . filter_input( INPUT_SERVER, 'REQUEST_URI' ) . '" method="post">
-	<div>
-	<label>Pending Students: </label> <br>';
-	foreach ( $users as $user ) {
-		echo '
-		<input type="checkbox" name="student_status[]" value="' . esc_html( $user->ID ) . '"> ' . esc_html( get_user_meta( $user->ID, 'nickname', true ) ) . '<br>';
-	}
-	echo '
-		<button type="submit" name="approve">Approve</button>
-		<button type="submit" name="deny">deny</button>' . wp_nonce_field( 'update', '_wpnonce_update-student-status' ) . '
+	if ( empty( $users ) ) {
+		?>
+		<div>
+			<p>
+				No Pending students.
+			</p>
 		</div>
-		</form>
-		</div>';
+		<?php
+	} else {
+		?>
+		<div>
+			<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
+				<div>
+					<label>Pending Students: </label> <br> 
+					<?php foreach ( $users as $user ) { ?>
+						<input type="checkbox" name="student_status[]" value="<?php echo esc_html( $user->ID ); ?>"><?php echo esc_html( get_user_meta( $user->ID, 'nickname', true ) ); ?><br>
+						<?php
+					}
+					?>
+					<button type="submit" name="approve">Approve</button>
+					<button type="submit" name="deny">deny</button><?php wp_nonce_field( 'update', '_wpnonce_update-student-status' ); ?>
+				</div>
+			</form>
+		</div>
+		<?php
+	}
 }
