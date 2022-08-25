@@ -52,6 +52,20 @@ function student_setting_menu() {
 	);
 }
 /**
+ * Generates options field for select tag.
+ *
+ * @param array  $array Array with key value pairs.
+ * @param string $string Value to check in selected().
+ * @return void
+ */
+function display_select_option_loop( $array, $string ) {
+	foreach ( $array as $key => $value ) {
+		?>
+		<option value = "<?php echo esc_attr( $key ); ?>"<?php selected( $key, $string, true ); ?>><?php echo esc_html( $value ); ?></option>
+		<?php
+	}
+}
+/**
  * Create Student menu callback function.
  *
  * @return void
@@ -76,7 +90,9 @@ function student_menu_callback_function() {
 	}
 	$users = get_users(
 		array(
-			'role' => 'student',
+			'role'    => 'student',
+			'orderby' => filter_input( INPUT_POST, 'order_by' ),
+			'order'   => filter_input( INPUT_POST, 'order' ),
 		)
 	);
 	if ( empty( $users ) ) {
@@ -92,15 +108,41 @@ function student_menu_callback_function() {
 		<div>
 			<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
 				<div>
-					<label>Registerd Students: </label> <br> 
-					<?php foreach ( $users as $user ) { ?>
-						<input type="checkbox" name="student_status[]" value="<?php echo esc_html( $user->ID ); ?>"><?php echo esc_html( get_user_meta( $user->ID, 'nickname', true ) ); ?><br>
-						<?php
-					}
-					?>
-					<button type="submit" name="approve">Approve</button>
-					<button type="submit" name="pending">Pending</button>
-					<button type="submit" name="deny">Deny</button>
+					<div>
+						<label for="registered_student">Registered Students: </label> <br> 
+						<?php foreach ( $users as $user ) { ?>
+							<input type="checkbox" name="student_status[]" value="<?php echo esc_html( $user->ID ); ?>"><?php echo esc_html( get_user_meta( $user->ID, 'nickname', true ) ); ?><br>
+							<?php
+						}
+						?>
+						<button type="submit" name="approve">Approve</button>
+						<button type="submit" name="pending">Pending</button>
+						<button type="submit" name="deny">Deny</button>
+					</div>
+					<div>
+					<label for="filter">Show students by</label>
+						<select name = "order_by" id="filter" onchange="this.form.submit()">
+							<?php
+							$filter = array(
+								'nicename' => 'Name',
+								'ID'       => 'User ID',
+							);
+							display_select_option_loop( $filter, filter_input( INPUT_POST, 'order_by' ) );
+							?>
+						</select>
+					</div>
+					<div>
+					<label for="filter_order">Order by</label>
+						<select name = "order" id="filter_order" onchange="this.form.submit()">
+							<?php
+							$filter = array(
+								'ASC'  => 'Ascending',
+								'DESC' => 'Descending',
+							);
+							display_select_option_loop( $filter, filter_input( INPUT_POST, 'order' ) );
+							?>
+						</select>
+					</div>
 					<?php wp_nonce_field( 'update', '_wpnonce_update-student-status' ); ?>
 				</div>
 			</form>
@@ -148,7 +190,7 @@ function pending_students_menu_callback_function() {
 		<div>
 			<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
 				<div>
-					<label>Pending Students: </label> <br> 
+					<label for="pending_student">Pending Students: </label> <br> 
 					<?php foreach ( $users as $user ) { ?>
 						<input type="checkbox" name="student_status[]" value="<?php echo esc_html( $user->ID ); ?>"><?php echo esc_html( get_user_meta( $user->ID, 'nickname', true ) ); ?><br>
 						<?php
@@ -201,7 +243,7 @@ function approved_students_menu_callback_function() {
 		<div>
 			<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
 				<div>
-					<label>Approved Students: </label> <br> 
+					<label for="approved_student">Approved Students: </label> <br> 
 					<?php foreach ( $users as $user ) { ?>
 						<input type="checkbox" name="student_status[]" value="<?php echo esc_html( $user->ID ); ?>"><?php echo esc_html( get_user_meta( $user->ID, 'nickname', true ) ); ?><br>
 						<?php
@@ -254,7 +296,7 @@ function denied_students_menu_callback_function() {
 		<div>
 			<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
 				<div>
-					<label>Denied Students: </label> <br> 
+					<label for="denied_student">Denied Students: </label> <br> 
 					<?php foreach ( $users as $user ) { ?>
 						<input type="checkbox" name="student_status[]" value="<?php echo esc_html( $user->ID ); ?>"><?php echo esc_html( get_user_meta( $user->ID, 'nickname', true ) ); ?><br>
 						<?php
