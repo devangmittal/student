@@ -126,4 +126,19 @@ function student_login_form_callable() {
 }
 add_shortcode( 'student_login', __NAMESPACE__ . '\student_login_form_callable' );
 
+/**
+ * Undocumented function
+ *
+ * @param \WP_User $user User object.
+ * @return \WP_User|null
+ */
+function authenticate_student( $user ) {
+	if ( in_array( 'student', $user->roles, true ) && 'denied' === get_user_meta( $user->ID, 'user_status', true ) ) {
+		$user = new WP_Error( 'student_authentication_failed', __( '<strong>Error</strong>: Your registration is denied.', 'student' ) );
+		return $user;
+	}
+	return $user;
+}
+add_filter( 'authenticate', __NAMESPACE__ . '\authenticate_student', 30, 3 );
+
 
