@@ -7,6 +7,8 @@
 
 namespace Devang\login_page;
 
+use WP_Error;
+
 /**
  * Renders logged in user details if user is logged in
  * otherwise renders login form.
@@ -15,36 +17,46 @@ namespace Devang\login_page;
  */
 function log_in_student() {
 	if ( is_user_logged_in() ) {
-		$userdata = get_userdata( get_current_user_id(), '', true );
-		?>
-		<div>
-			<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
-				<label>User Details</label><br>
-				<div>
-					<label for="username">Username </label>
-					<input type="text" name="username" value="<?php echo esc_html( $userdata->user_login ); ?>" disabled>
-				</div>
-				<div>
-					<label for="email">Email </label>
-					<input type="email" name="email" value="<?php echo esc_html( $userdata->user_email ); ?>"disabled>
-				</div>
-				<div>
-					<label  for="url">Blog url </label>
-					<input type="url" name="url" value="<?php echo esc_html( $userdata->user_url ); ?>">
-				</div>
-				<div>
-					<label for="firstname">First Name </label>
-					<input type="text" name="fname" value="<?php echo esc_html( $userdata->first_name ); ?>">
-				</div>
-				<div>
-					<label for="lastname">Last Name </label>
-					<input type="text" name="lname" value="<?php echo esc_html( $userdata->last_name ); ?>">
-				</div>
-				<input type="submit" name="update" value="Update Details"/><?php wp_nonce_field( 'update', '_wpnonce_update-details' ); ?>
-
-			</form>
-		</div>
-		<?php
+		$userdata       = get_userdata( get_current_user_id(), '', true );
+		$user_meta_data = get_user_meta( get_current_user_id(), 'user_status', true );
+		if ( 'pending' === $user_meta_data ) {
+			?>
+			<div>
+				<p>
+					Your Registration is still pending, Please try after some time.
+				</p>
+			</div>
+			<?php
+		} elseif ( 'denied' !== $user_meta_data ) {
+			?>
+			<div>
+				<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
+					<label>User Details</label><br>
+					<div>
+						<label for="username">Username </label>
+						<input type="text" name="username" value="<?php echo esc_html( $userdata->user_login ); ?>" disabled>
+					</div>
+					<div>
+						<label for="email">Email </label>
+						<input type="email" name="email" value="<?php echo esc_html( $userdata->user_email ); ?>"disabled>
+					</div>
+					<div>
+						<label  for="url">Blog url </label>
+						<input type="url" name="url" value="<?php echo esc_html( $userdata->user_url ); ?>">
+					</div>
+					<div>
+						<label for="firstname">First Name </label>
+						<input type="text" name="fname" value="<?php echo esc_html( $userdata->first_name ); ?>">
+					</div>
+					<div>
+						<label for="lastname">Last Name </label>
+						<input type="text" name="lname" value="<?php echo esc_html( $userdata->last_name ); ?>">
+					</div>
+					<input type="submit" name="update" value="Update Details"/><?php wp_nonce_field( 'update', '_wpnonce_update-details' ); ?>
+				</form>
+			</div>
+			<?php
+		}
 	} else {
 		wp_login_form();
 	}
@@ -56,7 +68,7 @@ function log_in_student() {
  * @return WP_Error $errors WP_Errors if any.
  */
 function validate_updation() {
-	$errors = new \WP_Error();
+	$errors = new WP_Error();
 	if ( empty( filter_input( INPUT_POST, 'fname' ) ) || empty( filter_input( INPUT_POST, 'lname' ) ) ) {
 		$errors->add( 'field', __( 'Required form field is missing', 'student' ) );
 	} elseif ( ! empty( filter_input( INPUT_POST, 'url', FILTER_VALIDATE_URL ) ) ) {
@@ -113,3 +125,5 @@ function student_login_form_callable() {
 	log_in_student();
 }
 add_shortcode( 'student_login', __NAMESPACE__ . '\student_login_form_callable' );
+
+
