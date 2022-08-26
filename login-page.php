@@ -127,10 +127,10 @@ function student_login_form_callable() {
 add_shortcode( 'student_login', __NAMESPACE__ . '\student_login_form_callable' );
 
 /**
- * Undocumented function
+ * Checks if student status is denied and prevents him to login.
  *
- * @param \WP_User $user User object.
- * @return \WP_User|null
+ * @param WP_User $user User object.
+ * @return WP_User|null $user User object.
  */
 function authenticate_student( $user ) {
 	if ( in_array( 'student', $user->roles, true ) && 'denied' === get_user_meta( $user->ID, 'user_status', true ) ) {
@@ -139,6 +139,18 @@ function authenticate_student( $user ) {
 	}
 	return $user;
 }
-add_filter( 'authenticate', __NAMESPACE__ . '\authenticate_student', 30, 3 );
+add_filter( 'wp_authenticate_user', __NAMESPACE__ . '\authenticate_student', 9 );
 
-
+/**
+ * Redirect on the same page if student login fails.
+ *
+ * @return void
+ */
+function student_login_failed_redirect() {
+	$referrer = filter_input( INPUT_SERVER, 'HTTP_REFERER' );
+	if ( ! empty( $referrer && ! strstr( $referrer, 'wp-login' ) && ! strstr( $referrer, 'wp-admin' ) ) ) {
+		wp_redirect( $referrer );
+		exit;
+	}
+}
+add_action( 'wp_login_failed', __NAMESPACE__ . '\student_login_failed_redirect' );
