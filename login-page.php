@@ -134,23 +134,24 @@ add_shortcode( 'student_login', __NAMESPACE__ . '\student_login_form_callable' )
  */
 function authenticate_student( $user ) {
 	if ( in_array( 'student', $user->roles, true ) && 'denied' === get_user_meta( $user->ID, 'user_status', true ) ) {
-		$user = new WP_Error( 'student_authentication_failed', __( '<strong>Error</strong>: Your registration is denied.', 'student' ) );
+		$referrer = filter_input( INPUT_SERVER, 'HTTP_REFERER' );
+		if ( ! empty( $referrer && ! strstr( $referrer, 'wp-login' ) && ! strstr( $referrer, 'wp-admin' ) ) ) {
+			wp_redirect( $referrer . '?login=failed&reason=Error: Your registration is denied.' );
+			exit;
+		}
 		return $user;
 	}
 	return $user;
 }
-add_filter( 'wp_authenticate_user', __NAMESPACE__ . '\authenticate_student', 9 );
-
+add_filter( 'wp_authenticate_user', __NAMESPACE__ . '\authenticate_student' );
 /**
- * Redirect on the same page if student login fails.
+ * Content to display on top of wp_login_form function.
  *
- * @return void
+ * @param string $content Content to be dispplayed.
+ * @return string $content Content to be dispplayed.
  */
-function student_login_failed_redirect() {
-	$referrer = filter_input( INPUT_SERVER, 'HTTP_REFERER' );
-	if ( ! empty( $referrer && ! strstr( $referrer, 'wp-login' ) && ! strstr( $referrer, 'wp-admin' ) ) ) {
-		wp_redirect( $referrer );
-		exit;
-	}
+function denied_student_login_error( $content ) {
+	$content = filter_input( INPUT_GET, 'reason' );
+	return $content;
 }
-add_action( 'wp_login_failed', __NAMESPACE__ . '\student_login_failed_redirect' );
+add_filter( 'login_form_top', __NAMESPACE__ . '\denied_student_login_error' );
