@@ -30,7 +30,7 @@ function log_in_student() {
 		} elseif ( 'denied' !== $user_meta_data ) {
 			?>
 			<div>
-				<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
+				<form id="update_student_meta" action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
 					<label>User Details</label><br>
 					<div>
 						<label for="username">Username </label>
@@ -52,7 +52,7 @@ function log_in_student() {
 						<label for="lastname">Last Name </label>
 						<input type="text" name="lname" value="<?php echo esc_html( $userdata->last_name ); ?>">
 					</div>
-					<input type="submit" name="update" value="Update Details"/><?php wp_nonce_field( 'update', '_wpnonce_update-details' ); ?>
+					<input type="submit" name="update" value="Update Details"/>
 				</form>
 			</div>
 			<?php
@@ -107,11 +107,12 @@ function update_user() {
 			'first_name' => sanitize_text_field( filter_input( INPUT_POST, 'fname' ) ),
 			'last_name'  => sanitize_text_field( filter_input( INPUT_POST, 'lname' ) ),
 		);
-		if ( wp_verify_nonce( filter_input( INPUT_POST, '_wpnonce_update-details' ), 'update' ) ) {
+		if ( wp_verify_nonce( filter_input( INPUT_POST, 'ajax_nonce' ), 'student_ajax_nonce' ) ) {
 				wp_update_user( $updated_user_data );
 		}
 	}
 }
+add_action( 'wp_ajax_update_user', __NAMESPACE__ . '\update_user' );
 /**
  * Create a shortcode for user profile if logged in
  * and login page if logged out.
@@ -119,9 +120,6 @@ function update_user() {
  * @return void
  */
 function student_login_form_callable() {
-	if ( filter_input( INPUT_POST, 'update' ) ) {
-		update_user();
-	}
 	log_in_student();
 }
 add_shortcode( 'student_login', __NAMESPACE__ . '\student_login_form_callable' );
