@@ -6,8 +6,7 @@ jQuery(document).ready(function ()
 		var blog_url = jQuery(this).find('input[name="url"]').val();
 		var first_name = jQuery(this).find('input[name="fname"]').val();
 		var last_name = jQuery(this).find('input[name="lname"]').val();
-		var nonce = jQuery(this).find('input[name="_wpnonce_update_details"]').val();
-		console.log(blog_url + first_name + last_name + nonce);
+		console.log(blog_url + first_name + last_name);
 		jQuery.ajax(
 			{
 				url: update_student_ajax.ajax_url,
