@@ -3,6 +3,7 @@ jQuery(document).ready(function ()
 	jQuery("#update_student_meta").submit(function (e)
 	{
 		e.preventDefault();
+		var url = update_student_ajax.ajax_url;
 		var blog_url = jQuery(this).find('input[name="url"]').val();
 		var first_name = jQuery(this).find('input[name="fname"]').val();
 		var last_name = jQuery(this).find('input[name="lname"]').val();
@@ -19,9 +20,15 @@ jQuery(document).ready(function ()
 					ajax_nonce: update_student_ajax.ajax_nonce,
 
 				},
+				error: function (error)
+				{
+					jQuery("#validation_error").html(error.responseText);
+					console.log(error.responseText);
+				},
 				success: function (response)
 				{
-					console.log("success");
+					jQuery("#validation_error").html(response.data);
+					console.log(response);
 				},
 				complete: function ()
 				{
