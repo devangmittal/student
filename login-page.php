@@ -7,8 +7,6 @@
 
 namespace Devang\login_page;
 
-use WP_Error;
-
 /**
  * Renders logged in user details if user is logged in
  * otherwise renders login form.
@@ -31,6 +29,9 @@ function log_in_student() {
 			?>
 			<div>
 				<form id="update_student_meta" action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
+					<div id="validation_error">
+
+					</div>
 					<label>User Details</label><br>
 					<div>
 						<label for="username">Username </label>
@@ -63,53 +64,33 @@ function log_in_student() {
 }
 
 /**
- * Validates input fields.
- *
- * @return WP_Error $errors WP_Errors if any.
- */
-function validate_updation() {
-	$errors = new WP_Error();
-	if ( empty( filter_input( INPUT_POST, 'fname' ) ) || empty( filter_input( INPUT_POST, 'lname' ) ) ) {
-		$errors->add( 'field', __( 'Required form field is missing', 'student' ) );
-	} elseif ( ! empty( filter_input( INPUT_POST, 'url', FILTER_VALIDATE_URL ) ) ) {
-		if ( wp_http_validate_url( filter_input( INPUT_POST, 'url', FILTER_VALIDATE_URL ) ) ) {
-			return;
-		} else {
-			$errors->add( 'url', 'It is not a valid URL' );
-		}
-	} elseif ( ! validate_username( filter_input( INPUT_POST, 'fname' ) ) ) {
-		$errors->add( 'username_invalid', __( 'Sorry, Invalid First Name', 'student' ) );
-	} elseif ( ! validate_username( filter_input( INPUT_POST, 'lname' ) ) ) {
-		$errors->add( 'username_invalid', __( 'Sorry, Invalid Last Name', 'student' ) );
-	}
-	if ( is_wp_error( $errors ) ) {
-
-		foreach ( $errors->get_error_messages() as $error ) {
-			echo '<div>';
-			echo '<strong>ERROR</strong>: ';
-			echo esc_html( $error ) . '<br/>';
-			echo '</div>';
-		}
-	}
-	return $errors;
-}
-/**
  * Update a user in users table.
  *
  * @return void
  */
 function update_user() {
-	$errors = validate_updation();
-	if ( 1 > count( $errors->get_error_messages() ) ) {
-		$updated_user_data = array(
-			'ID'         => get_current_user_id(),
-			'user_url'   => esc_url( filter_input( INPUT_POST, 'url' ) ),
-			'first_name' => sanitize_text_field( filter_input( INPUT_POST, 'fname' ) ),
-			'last_name'  => sanitize_text_field( filter_input( INPUT_POST, 'lname' ) ),
-		);
-		if ( wp_verify_nonce( filter_input( INPUT_POST, 'ajax_nonce' ), 'student_ajax_nonce' ) ) {
-				wp_update_user( $updated_user_data );
+	if ( empty( filter_input( INPUT_POST, 'fname' ) ) || empty( filter_input( INPUT_POST, 'lname' ) ) ) {
+		wp_send_json_error( __( 'Required form field is missing', 'student' ) );
+	} elseif ( ! empty( filter_input( INPUT_POST, 'url', FILTER_VALIDATE_URL ) ) ) {
+		if ( wp_http_validate_url( filter_input( INPUT_POST, 'url', FILTER_VALIDATE_URL ) ) ) {
+			return;
+		} else {
+			wp_send_json_error( __( 'It is not a valid URL', 'student' ) );
 		}
+	} elseif ( ! validate_username( filter_input( INPUT_POST, 'fname' ) ) ) {
+		wp_send_json_error( __( 'Sorry, Invalid First Name', 'student' ) );
+	} elseif ( ! validate_username( filter_input( INPUT_POST, 'lname' ) ) ) {
+		wp_send_json_error( __( 'Sorry, Invalid Last Name', 'student' ) );
+	}
+	$updated_user_data = array(
+		'ID'         => get_current_user_id(),
+		'user_url'   => esc_url( filter_input( INPUT_POST, 'url' ) ),
+		'first_name' => sanitize_text_field( filter_input( INPUT_POST, 'fname' ) ),
+		'last_name'  => sanitize_text_field( filter_input( INPUT_POST, 'lname' ) ),
+	);
+	if ( wp_verify_nonce( filter_input( INPUT_POST, 'ajax_nonce' ), 'student_ajax_nonce' ) ) {
+			wp_update_user( $updated_user_data );
+			wp_send_json_success( 'Fields Updated' );
 	}
 }
 add_action( 'wp_ajax_update_user', __NAMESPACE__ . '\update_user' );
