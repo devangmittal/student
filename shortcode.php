@@ -8,49 +8,49 @@
 namespace Devang\Shortcode;
 
 /**
- * Create a registtration form for user.
+ * Create a registration form for user.
  *
  * @return void
  */
 function registration_form() {
-	echo '
-    <form action="' . filter_input( INPUT_SERVER, 'REQUEST_URI' ) . '" method="post">
-    <div>
-    <label for="username">Username <strong>*</strong></label>
-    <input type="text" name="username" value="' . filter_input( INPUT_POST, 'username' ) . '">
-    </div>
-     
-    <div>
-    <label for="password">Password <strong>*</strong></label>
-    <input type="password" name="password" value="' . filter_input( INPUT_POST, 'password' ) . '">
-    </div>
-     
-    <div>
-    <label for="email">Email <strong>*</strong></label>
-    <input type="email" name="email" value="' . filter_input( INPUT_POST, 'email', FILTER_VALIDATE_EMAIL ) . '">
-    </div>
-     
-    <div>
-    <label for="url">Blog url</label>
-    <input type="url" name="url" value="' . filter_input( INPUT_POST, 'url', FILTER_VALIDATE_URL ) . '">
-    </div>
-     
-    <div>
-    <label for="firstname">First Name <strong>*</strong></label>
-    <input type="text" name="fname" value="' . filter_input( INPUT_POST, 'fname' ) . '">
-    </div>
-     
-    <div>
-    <label for="lastname">Last Name <strong>*</strong></label>
-    <input type="text" name="lname" value="' . filter_input( INPUT_POST, 'lname' ) . '">
-    </div>
-     
-    <input type="submit" name="submit" value="Register Student"/>' . wp_nonce_field( 'register', '_wpnonce_register-student' ) . '
-    </form>
-    ';
+	?>
+	<form action="<?php filter_input( INPUT_SERVER, 'REQUEST_URI' ); ?>" method="post">
+		<div>
+			<label for="username">Username <strong>*</strong></label>
+			<input type="text" name="username" value="<?php filter_input( INPUT_POST, 'username' ); ?>">
+		</div>
+
+		<div>
+			<label for="password">Password <strong>*</strong></label>
+			<input type="password" name="password" value="<?php filter_input( INPUT_POST, 'password' ); ?>">
+		</div>
+
+		<div>
+			<label for="email">Email <strong>*</strong></label>
+			<input type="email" name="email" value="<?php filter_input( INPUT_POST, 'email', FILTER_VALIDATE_EMAIL ); ?>">
+		</div>
+
+		<div>
+			<label for="url">Blog url</label>
+			<input type="url" name="url" value="<?php filter_input( INPUT_POST, 'url', FILTER_VALIDATE_URL ); ?>">
+		</div>
+
+		<div>
+			<label for="firstname">First Name <strong>*</strong></label>
+			<input type="text" name="fname" value="<?php filter_input( INPUT_POST, 'fname' ); ?>">
+		</div>
+
+		<div>
+			<label for="lastname">Last Name <strong>*</strong></label>
+			<input type="text" name="lname" value="<?php filter_input( INPUT_POST, 'lname' ); ?>">
+		</div>
+
+		<input type="submit" name="submit" value="Register Student"/><?php wp_nonce_field( 'register', '_wpnonce_register-student' ); ?>
+	</form>
+	<?php
 }
 /**
- * Validates the data.
+ * Validates the user input data.
  *
  * @return WP_Error $reg_errors
  */
@@ -85,16 +85,18 @@ function registration_validation() {
 	if ( is_wp_error( $reg_errors ) ) {
 
 		foreach ( $reg_errors->get_error_messages() as $error ) {
-			echo '<div>';
-			echo '<strong>ERROR</strong>: ';
-			echo esc_html( $error ) . '<br/>';
-			echo '</div>';
+			?>
+			<div>
+				<strong>ERROR</strong>: <?php esc_html( $error ); ?><br/>
+			</div>
+			<?php
 		}
 	}
 	return $reg_errors;
 }
 /**
- * Adds user.
+ * Inserts a user if no error found in registration_validation function found.
+ * See registration_validation() first.
  *
  * @return void
  */
@@ -112,34 +114,44 @@ function complete_registration() {
 			'last_name'  => sanitize_text_field( filter_input( INPUT_POST, 'lname' ) ),
 			'role'       => 'student',
 		);
+		// Verify nonce.
 		if ( wp_verify_nonce( filter_input( INPUT_POST, '_wpnonce_register-student' ), 'register' ) ) {
+			// Insert new student in database.
 			$user_id = wp_insert_user( $userdata );
 			if ( ! is_wp_error( $user_id ) ) {
+				// Update student status to meta.
 				update_user_meta( $user_id, 'user_status', 'pending' );
 			} else {
 				return;
 			}
-			echo '<div>';
-			esc_html_e( 'Registration complete. Waiting for Approval.', 'student' );
-			echo '</div>';
+			?>
+			<div>
+				<?php esc_html_e( 'Registration complete. Waiting for Approval.', 'student' ); ?>
+			</div>
+			<?php
 		} else {
-			echo '<div>';
-			esc_html_e( 'You do not have permission to create a user.', 'student' );
-			echo '</div>';
+			?>
+			<div>
+				<?php esc_html_e( 'You do not have permission to create a user.', 'student' ); ?>
+			</div>
+			<?php
 		}
 	}
 }
 /**
- * Custom function to add shortcode.
+ * Custom function to add shortcode for student registration.
+ * Renders registration form.
+ * If no errors then registers a student with status pending.
  *
  * @return void
  */
 function student_shortcode_callable() {
 	if ( filter_input( INPUT_POST, 'submit' ) ) {
-		// call @function complete_registration to create the user.
-		// only when no WP_error is found.
+		// Register a student after validation is done.
 		complete_registration();
 	}
+	// Renders registration form HTML.
 	registration_form();
 }
+// Add shortcode hook.
 add_shortcode( 'student_register_form', __NAMESPACE__ . '\student_shortcode_callable' );
