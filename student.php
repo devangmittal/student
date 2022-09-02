@@ -15,14 +15,16 @@
 namespace Devang\Student;
 
 // define plugin path.
-define( 'MY_PLUGIN_PAT', plugin_dir_path( __FILE__ ) );
+define( 'STUDENT_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
-// include shortcode.php file.
-require_once MY_PLUGIN_PAT . 'shortcode.php';
-require_once MY_PLUGIN_PAT . 'admin-setting.php';
-require_once MY_PLUGIN_PAT . 'login-page.php';
+// include various files needed in the plugin.
+require_once STUDENT_PLUGIN_PATH . 'shortcode.php';
+require_once STUDENT_PLUGIN_PATH . 'admin-setting.php';
+require_once STUDENT_PLUGIN_PATH . 'login-page.php';
 
+// Add new role student.
 add_role( 'student', 'Student' );
+
 /**
  * Enqueue custom scripts.
  *
@@ -39,5 +41,6 @@ function load_scripts() {
 		)
 	);
 }
+// Enqueue scripts function in wp_enqueue_scripts hook.
 add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\load_scripts' );
 
