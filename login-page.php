@@ -64,7 +64,7 @@ function log_in_student() {
 }
 
 /**
- * Update a user in users table.
+ * Update a user meta in users table.
  *
  * @return void
  */
@@ -93,6 +93,7 @@ function update_user() {
 			wp_send_json_success( 'Fields Updated' );
 	}
 }
+// Add update_user function to wp_ajax hook.
 add_action( 'wp_ajax_update_user', __NAMESPACE__ . '\update_user' );
 /**
  * Create a shortcode for user profile if logged in
@@ -103,6 +104,7 @@ add_action( 'wp_ajax_update_user', __NAMESPACE__ . '\update_user' );
 function student_login_form_callable() {
 	log_in_student();
 }
+// Add shortcode student_login.
 add_shortcode( 'student_login', __NAMESPACE__ . '\student_login_form_callable' );
 
 /**
@@ -122,6 +124,7 @@ function authenticate_student( $user ) {
 	}
 	return $user;
 }
+// Add authenticate_student function to wp_authenticate_user hook.
 add_filter( 'wp_authenticate_user', __NAMESPACE__ . '\authenticate_student' );
 /**
  * Content to display on top of wp_login_form function.
@@ -129,8 +132,9 @@ add_filter( 'wp_authenticate_user', __NAMESPACE__ . '\authenticate_student' );
  * @param string $content Content to be dispplayed.
  * @return string $content Content to be dispplayed.
  */
-function denied_student_login_error( $content ) {
+function render_denied_student_login_error( $content ) {
 	$content = filter_input( INPUT_GET, 'reason' );
 	return $content;
 }
-add_filter( 'login_form_top', __NAMESPACE__ . '\denied_student_login_error' );
+// Add render_denied_student_login_error to login_form_top hook.
+add_filter( 'login_form_top', __NAMESPACE__ . '\render_denied_student_login_error' );
